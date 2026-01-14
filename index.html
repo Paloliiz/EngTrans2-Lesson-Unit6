@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T2 - Unit 6: Director's Cut 🎬</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&family=Sarabun:wght@400;600&family=Bebas+Neue&display=swap');
+        
+        :root {
+            --bg-color: #0d0d0d;
+            --card-bg: #1a1a1a;
+            --text-main: #e0e0e0;
+            --primary: #e50914; /* Netflix Red */
+            --accent: #fbc02d; /* Popcorn Yellow */
+            --blue: #29b6f6;
+            --success: #4caf50;
+            --error: #f44336;
+            --disabled: #333;
+        }
+
+        * { box-sizing: border-box; }
+
+        body { font-family: 'Prompt', sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: center; background-image: radial-gradient(circle, #222 1px, transparent 1px); background-size: 30px 30px; }
+        
+        /* Main Container */
+        .container { width: 100%; max-width: 800px; background: #141414; border-radius: 15px; box-shadow: 0 0 60px rgba(229, 9, 20, 0.2); overflow: hidden; display: flex; flex-direction: column; height: 90vh; position: relative; border: 1px solid #333; }
+        
+        /* Header */
+        .top-bar { padding: 15px 30px; background: linear-gradient(to bottom, #000, #1a1a1a); border-bottom: 4px solid var(--primary); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .app-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8em; letter-spacing: 2px; color: var(--primary); text-shadow: 0 0 10px rgba(229, 9, 20, 0.6); }
+        .user-badge { font-size: 0.8em; background: #333; color: #fff; padding: 5px 15px; border-radius: 4px; font-family: 'Courier Prime', monospace; border: 1px solid #555; }
+
+        /* Progress Bar */
+        .progress-container { width: 100%; height: 6px; background: #333; position: relative; flex-shrink: 0; }
+        .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.5s ease; box-shadow: 0 0 10px var(--primary); }
+
+        /* Scrollable Content Area */
+        .content-area { flex: 1; overflow-y: auto; padding: 30px; scroll-behavior: smooth; }
+        
+        /* Fixed Footer */
+        .footer-bar { padding: 15px 30px; background: #1a1a1a; border-top: 1px solid #333; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+
+        /* Screens */
+        .screen { display: none; flex-direction: column; align-items: center; animation: fadeIn 0.6s ease-out; width: 100%; padding-bottom: 20px; }
+        .screen.active { display: flex; }
+
+        /* Typography */
+        h2 { color: #fff; text-align: center; margin-bottom: 25px; font-weight: 600; font-size: 1.8em; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid var(--primary); display: inline-block; padding-bottom: 5px; }
+        p { line-height: 1.8; margin-bottom: 20px; color: #ccc; font-family: 'Sarabun', sans-serif; font-size: 1.15em; width: 100%; }
+        
+        /* Components */
+        .info-card { background: #262626; border-left: 5px solid var(--accent); padding: 25px; border-radius: 8px; width: 100%; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; }
+        .info-title { color: var(--accent); font-weight: bold; font-size: 1.3em; display: block; margin-bottom: 10px; font-family: 'Bebas Neue', cursive; letter-spacing: 1px; }
+        .trivia-tag { position: absolute; top: -10px; right: 20px; background: var(--blue); color: #000; padding: 2px 10px; font-size: 0.8em; font-weight: bold; border-radius: 20px; transform: rotate(5deg); }
+
+        /* Example Box */
+        .example-box { background: #000; padding: 15px; border-radius: 5px; border: 1px dashed #555; margin: 10px 0; font-family: 'Sarabun', sans-serif; }
+        .bad-ex { color: var(--error); text-decoration: line-through; display: block; margin-bottom: 5px; }
+        .good-ex { color: var(--success); font-weight: bold; display: block; }
+
+        /* Interactive Elements */
+        .option-grid { display: grid; gap: 12px; width: 100%; }
+        .quiz-option { width: 100%; padding: 18px 20px; text-align: left; background: #333; border: 1px solid #444; border-radius: 8px; cursor: pointer; transition: 0.2s; font-family: 'Sarabun', sans-serif; font-size: 1.1em; color: #eee; position: relative; }
+        .quiz-option:hover { background: #444; border-color: #fff; transform: translateX(5px); }
+        .quiz-option.correct { background: rgba(76, 175, 80, 0.2); border-color: var(--success); color: var(--success); }
+        .quiz-option.wrong { background: rgba(244, 67, 54, 0.2); border-color: var(--error); color: var(--error); }
+        .quiz-option.locked { pointer-events: none; opacity: 0.6; }
+
+        /* Cut Tool (Game) */
+        .cut-container { background: #000; padding: 20px; border-radius: 10px; text-align: center; width: 100%; margin-bottom: 20px; border: 1px solid #333; }
+        .cut-text { font-size: 1.3em; margin-bottom: 15px; color: #fff; line-height: 1.6; }
+
+        /* Inputs & Buttons */
+        input[type="number"] { padding: 18px; font-size: 1.5em; width: 100%; text-align: center; border: 2px solid #444; border-radius: 8px; margin: 25px 0; outline: none; background: #222; color: #fff; font-family: 'Courier Prime', monospace; letter-spacing: 2px; }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 20px rgba(229, 9, 20, 0.4); }
+
+        .btn { padding: 15px 40px; border: none; border-radius: 50px; font-size: 1.2em; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; text-transform: uppercase; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 5px 20px rgba(229, 9, 20, 0.4); }
+        .btn-primary:hover { background: #b00710; transform: translateY(-3px); }
+        .btn-disabled { background: #444 !important; color: #888 !important; cursor: not-allowed !important; transform: none !important; box-shadow: none !important; pointer-events: none; }
+        
+        .btn-nav-group { width: 100%; display: flex; justify-content: space-between; margin-top: auto; padding-top: 20px; }
+        
+        /* Footer Buttons */
+        .footer-btn { padding: 12px 30px; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; transition: 0.2s; }
+        .btn-back { background: transparent; color: #888; border: 1px solid #444; }
+        .btn-back:hover { background: #333; color: #fff; }
+        .btn-next { background: var(--primary); color: white; min-width: 150px; }
+        .btn-next:hover { background: #b00710; transform: scale(1.05); }
+
+        /* Certificate */
+        .cert-card { border: 4px solid var(--accent); padding: 40px; margin-top: 10px; position: relative; background: radial-gradient(circle, #222 0%, #000 100%); width: 100%; text-align: center; overflow: hidden; box-shadow: 0 0 50px rgba(255, 179, 0, 0.15); }
+        .cert-content { position: relative; z-index: 2; }
+        .stamp { border: 3px solid var(--primary); color: var(--primary); display: inline-block; padding: 10px 20px; font-family: 'Bebas Neue'; font-size: 2em; letter-spacing: 3px; transform: rotate(-10deg); opacity: 0.8; margin-top: 20px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-bar">
+        <div class="app-title">🎬 Creative Studio</div>
+        <div id="userDisplay" class="user-badge">STAFF ONLY</div>
+    </div>
+    <div class="progress-container"><div id="progressBar" class="progress-bar"></div></div>
+
+    <div class="content-area">
+        
+        <div id="screen-login" class="screen active">
+            <div style="text-align: center; margin: auto; width: 100%;">
+                <div style="font-size: 6em; margin-bottom: 20px; filter: drop-shadow(0 0 10px var(--primary));">🎥</div>
+                <h1 style="color:white; margin:0; font-family: 'Bebas Neue'; letter-spacing: 3px; font-size: 2.5em;">ENGLISH TRANSLATION 2</h1>
+                <p style="color:var(--accent); margin-top:10px; font-size:1.2em;">Unit 6: Subtitle & Media Translation</p>
+                <div style="border-top:1px solid #333; width:50%; margin: 30px auto;"></div>
+                
+                <p style="font-size:1em; color:#888;">โปรดระบุรหัสทีมงาน (Student ID)</p>
+                <input type="number" id="inputID" placeholder="_ _ _ _ _" onkeypress="if(event.key === 'Enter') checkLogin()">
+                <br>
+                <button class="btn btn-primary" onclick="checkLogin()">ENTER STUDIO</button>
+                <div style="margin-top: 50px; cursor: pointer; color: #444; font-size: 0.7em;" onclick="adminReset()">[ FACTORY RESET ]</div>
+            </div>
+        </div>
+
+        <div id="screen-lesson" class="screen">
+            <div id="lesson-content" style="width: 100%;"></div>
+        </div>
+
+        <div id="screen-result" class="screen"></div>
+    </div>
+
+    <div class="footer-bar" id="footerBar" style="display:none;">
+        <button class="footer-btn btn-back" onclick="prevSlide()">❮ PREV</button>
+        <button id="nextBtn" class="footer-btn btn-next" onclick="nextSlide()">ACTION ❯</button>
+    </div>
+</div>
+
+<script>
+    // --- DATABASE ---
+    const students = {
+        "012345": { name: "คุณครูศรุตา จันทเกตุ", class: "Teacher", no: 99 },
+        "11456": { name: "นายวุฒิชัย ปาสา", class: "ม.6/3", no: 1 }, "11478": { name: "นายเจษฎา นุขุนทด", class: "ม.6/3", no: 2 }, "11490": { name: "นายสิรวิชญ์ คณาญาติ", class: "ม.6/3", no: 3 }, "11513": { name: "นายธนวัฒน์ ตรวจนอก", class: "ม.6/3", no: 4 }, "11516": { name: "นายปรเวช ประหูศรี", class: "ม.6/3", no: 5 }, "11519": { name: "นายรัฐพงศ์ พรมประดิษฐ์", class: "ม.6/3", no: 6 }, "11520": { name: "นายวารสาร สายศร", class: "ม.6/3", no: 7 }, "11574": { name: "นายกนกนันธ์ อำคาหล้า", class: "ม.6/3", no: 8 }, "11575": { name: "นายกฤษฎา แกมจินดา", class: "ม.6/3", no: 9 }, "11578": { name: "นายณัฐพล ปุราถาเน", class: "ม.6/3", no: 10 }, "11588": { name: "นายภาสิต พงศกุล", class: "ม.6/3", no: 11 }, "11918": { name: "นายคชาพล ครองยุติ", class: "ม.6/3", no: 12 }, "12471": { name: "นายเขมินทร์ หลาบหนองแสง", class: "ม.6/3", no: 13 }, "12472": { name: "นายณัฐวัฒน์ ด่านมณี", class: "ม.6/3", no: 14 }, "12775": { name: "นายสมเจตน์ พุทธสังข์", class: "ม.6/3", no: 16 }, "11493": { name: "นางสาวแก้วมณี ฉัตรแสนทวีสุข", class: "ม.6/3", no: 17 }, "11499": { name: "นางสาวพัชรพร ดารักษ์", class: "ม.6/3", no: 18 }, "11501": { name: "นางสาวเพ็ญพิชชา สีทอง", class: "ม.6/3", no: 19 }, "11533": { name: "นางสาวยุพารัตน์ สีแดง", class: "ม.6/3", no: 20 }, "11596": { name: "นางสาวทิพวรรณ บุญคุ่ย", class: "ม.6/3", no: 21 }, "11628": { name: "นางสาวกมลเนตร ฤทธิเดช", class: "ม.6/3", no: 22 }, "11632": { name: "นางสาวทิพรัตน์ ร่มรื่น", class: "ม.6/3", no: 23 }, "12473": { name: "นางสาวชนาภา นาชัยภูมิ", class: "ม.6/3", no: 24 }, "12474": { name: "นางสาวณัฐวิภา จันสำรวม", class: "ม.6/3", no: 25 }, "12476": { name: "นางสาววรัญญามะลิซ้อน", class: "ม.6/3", no: 26 },
+        "11484": { name: "นายธีรติ ประหูศรี", class: "ม.6/4", no: 1 }, "11518": { name: "นายภูมิพัฒณ์ สีนวล", class: "ม.6/4", no: 2 }, "11523": { name: "นายอนันต์ชัย พันชำนาญ", class: "ม.6/4", no: 3 }, "11582": { name: "นายนิคม ตราผักแว่น", class: "ม.6/4", no: 4 }, "11618": { name: "นายพีรพัฒน์ ไก่แก้ว", class: "ม.6/4", no: 5 }, "11624": { name: "นายอธิชา พลจอหอ", class: "ม.6/4", no: 6 }, "11674": { name: "นายรัตภูมิ แก่งกระโทก", class: "ม.6/4", no: 7 }, "11957": { name: "นายนิพิฐพนท์ ดาศรี", class: "ม.6/4", no: 8 }, "12228": { name: "นายภูริพัทธ์ เปี่ยมเจริญ", class: "ม.6/4", no: 9 }, "12479": { name: "นายทิฐินันท์ จาดนอก", class: "ม.6/4", no: 10 }, "12480": { name: "นายสุทธินนท์ สุทธิเดช", class: "ม.6/4", no: 11 }, "11465": { name: "นางสาวภัทรภรณ์ นาควัน", class: "ม.6/4", no: 12 }, "11505": { name: "นางสาววิยะฎา อุตรี", class: "ม.6/4", no: 13 }, "11538": { name: "นางสาววีระตา สืบสุนทร", class: "ม.6/4", no: 14 }, "11567": { name: "นางสาวสลิลทิพย์ เจริญดง", class: "ม.6/4", no: 15 }, "11568": { name: "นางสาวสุชาดา อนันต์นิล", class: "ม.6/4", no: 16 }, "11569": { name: "นางสาวสุพิชฌาย์ กำเหนิด", class: "ม.6/4", no: 17 }, "11593": { name: "นางสาวกมลรัตน์ พืชนะผล", class: "ม.6/4", no: 18 }, "11604": { name: "นางสาวอรวินท์ สุดสังข์", class: "ม.6/4", no: 19 }, "11671": { name: "นางสาวอิมวา แสนขวา", class: "ม.6/4", no: 20 }, "11949": { name: "นางสาวภัทรณนิดา กุลชัย", class: "ม.6/4", no: 21 }, "12481": { name: "นางสาวรุ้งลาวัลย์ สายสังข์", class: "ม.6/4", no: 22 }, "12488": { name: "นางสาวธัญรัตน์ แตงรอด", class: "ม.6/4", no: 23 }, "12778": { name: "นางสาวอภิญญา งามสม", class: "ม.6/4", no: 24 }
+    };
+
+    let currentUser = null;
+    let slideIndex = 0;
+    let quizScore = 0;
+    let navTimer = null; // Timer for navigation
+
+    // --- QUESTION POOL (25 Items) ---
+    const questionPool = [
+        { q: "หัวใจสำคัญของการแปลสื่อ (Media Translation) คืออะไร?", choices: ["แปลให้ถูกต้อง 100%", "แปลเพื่อคนดู (Audience-Centered)", "แปลให้เร็วที่สุด"], ans: "แปลเพื่อคนดู (Audience-Centered)" },
+        { q: "ข้อจำกัดสำคัญที่สุดของการแปลซับไตเติ้ลคือ?", choices: ["พื้นที่และเวลา (Space & Time)", "คำศัพท์ยาก", "สีของตัวอักษร"], ans: "พื้นที่และเวลา (Space & Time)" },
+        { q: "ใน 1 บรรทัดของซับไตเติ้ล ไม่ควรเกินกี่ตัวอักษร?", choices: ["20 ตัว", "37-40 ตัว", "100 ตัว"], ans: "37-40 ตัว" },
+        { q: "หากประโยคยาวเกินไป นักแปลควรทำอย่างไร?", choices: ["ตัดทอนคำฟุ่มเฟือย (Trim)", "ลดขนาดตัวอักษร", "เพิ่มความเร็ววิดีโอ"], ans: "ตัดทอนคำฟุ่มเฟือย (Trim)" },
+        { q: "การแปลสโลแกน (Slogan) ควรเน้นสิ่งใด?", choices: ["ความถูกต้องทางไวยากรณ์", "ความสละสลวยและจดจำง่าย", "แปลตรงตัวทุกคำ"], ans: "ความสละสลวยและจดจำง่าย" },
+        { q: "สโลแกน Nike 'Just Do It' แปลไทยว่าอย่างไรจึงจะ 'Transcreate' ได้ดีที่สุด?", choices: ["ทำมันเลย", "แค่ลงมือทำ", "จงทำมันซะ"], ans: "แค่ลงมือทำ" },
+        { q: "ประโยค 'I really don't know what to do.' หากแปลซับควรเป็น?", choices: ["ฉันไม่รู้จริงๆ ว่าจะทำอะไรดีนะ", "ไม่รู้จะทำไงดี", "ฉันไม่ทราบว่าควรกระทำสิ่งใด"], ans: "ไม่รู้จะทำไงดี" },
+        { q: "คำว่า 'Transcreation' หมายถึงอะไร?", choices: ["การแปลสร้างสรรค์ (Translation + Creation)", "การแปลด้วยเครื่องจักร", "การแปลเอกสารราชการ"], ans: "การแปลสร้างสรรค์ (Translation + Creation)" },
+        { q: "ในการแปลภาพยนตร์ คำหยาบ (Swear words) ควรแปลอย่างไร?", choices: ["แปลตรงตัวทุกคำ", "ปรับระดับให้เหมาะกับบริบท/สังคม", "ตัดทิ้งทั้งหมด"], ans: "ปรับระดับให้เหมาะกับบริบท/สังคม" },
+        { q: "Mood & Tone ของหนังตลก ควรใช้ภาษาแบบใด?", choices: ["ทางการ", "วิชาการ", "กันเอง / สนุกสนาน"], ans: "กันเอง / สนุกสนาน" },
+        { q: "ถ้าตัวละครพูดเร็วมาก นักแปลควรทำอย่างไร?", choices: ["รวบความ / สรุปใจความ", "แปลทุกพยางค์", "ใส่ซับซ้อนกัน 3 บรรทัด"], ans: "รวบความ / สรุปใจความ" },
+        { q: "สโลแกน 'Impossible is Nothing' แปลว่า?", choices: ["เป็นไปไม่ได้คือความว่างเปล่า", "ไม่มีอะไรที่เป็นไปไม่ได้", "ความเป็นไปไม่ได้คือศูนย์"], ans: "ไม่มีอะไรที่เป็นไปไม่ได้" },
+        { q: "การแปลชื่อหนัง (Movie Title) มักใช้วิธีใด?", choices: ["แปลตรงตัวเป๊ะๆ", "ตั้งชื่อใหม่ให้ดึงดูดใจ (Localization)", "ใช้ทับศัพท์เสมอ"], ans: "ตั้งชื่อใหม่ให้ดึงดูดใจ (Localization)" },
+        { q: "คำว่า 'Spoiler' ในบริบทหนัง แปลว่า?", choices: ["สปอยล์ / เฉลยเนื้อหา", "ผู้ทำลาย", "ปีกเครื่องบิน"], ans: "สปอยล์ / เฉลยเนื้อหา" },
+        { q: "Reading Speed เฉลี่ยของคนดูซับคือเท่าไหร่?", choices: ["5 ตัว/วินาที", "12-15 ตัว/วินาที", "30 ตัว/วินาที"], ans: "12-15 ตัว/วินาที" },
+        { q: "หากแปลผิดบริบท (Context) จะเกิดผลเสียอย่างไร?", choices: ["คนดูไม่เข้าใจมุก / เสียอรรถรส", "ประหยัดเวลา", "ทำให้หนังยาวขึ้น"], ans: "คนดูไม่เข้าใจมุก / เสียอรรถรส" },
+        { q: "ประโยค 'You're fired!' ในหนังดราม่าออฟฟิศ แปลว่า?", choices: ["คุณถูกไฟไหม้", "คุณถูกยิง", "คุณถูกไล่ออก"], ans: "คุณถูกไล่ออก" },
+        { q: "ประโยค 'Watch out!' ในหนังแอคชั่น แปลว่า?", choices: ["ระวัง!", "ดูข้างนอกสิ", "ดูออกไหม"], ans: "ระวัง!" },
+        { q: "การแปลเพลงประกอบหนัง ต้องคำนึงถึงอะไร?", choices: ["จำนวนบรรทัด", "ทำนองและสัมผัส (Rhyme)", "ชื่อนักร้อง"], ans: "ทำนองและสัมผัส (Rhyme)" },
+        { q: "คำว่า 'Subtitle' ภาษาไทยเรียกว่า?", choices: ["บทพากย์", "คำบรรยายใต้ภาพ", "บทภาพยนตร์"], ans: "คำบรรยายใต้ภาพ" },
+        { q: "สโลแกน KFC 'Finger Lickin' Good' แปลว่า?", choices: ["อร่อยจนต้องเลียนิ้ว", "นิ้วเลียดี", "ไก่อร่อยมาก"], ans: "อร่อยจนต้องเลียนิ้ว" },
+        { q: "ข้อใดคือเป้าหมายสูงสุดของการแปลสื่อ?", choices: ["ความถูกต้องตามพจนานุกรม", "การสื่อสารอารมณ์และความหมาย", "การใช้ศัพท์หรูหรา"], ans: "การสื่อสารอารมณ์และความหมาย" },
+        { q: "ประโยค 'I'm gonna make him an offer he can't refuse.' แปลสวยๆ ว่า?", choices: ["ฉันจะยื่นข้อเสนอที่เขาปฏิเสธไม่ได้", "ฉันจะให้ของเขา", "เขาจะไม่ปฏิเสธฉัน"], ans: "ฉันจะยื่นข้อเสนอที่เขาปฏิเสธไม่ได้" },
+        { q: "Dubbing คืออะไร?", choices: ["การพากย์เสียงทับ", "การฝังซับ", "การตัดต่อ"], ans: "การพากย์เสียงทับ" }
+    ];
+
+    // --- CONTENT SLIDES ---
+    const baseSlides = [
+        // 0. Intro
+        { type: "intro", title: "Welcome to The Studio! 🎬", text: "ยินดีต้อนรับสู่โลกแห่งการแปลสื่อสร้างสรรค์ค่ะ!\n\nConcept: \"Translating for Audience\"\nแปลอย่างไรให้คนดู 'อิน' และ 'ทัน'\n\nเป้าหมายภารกิจวันนี้:\n1. เจาะลึกกฎเหล็กของซับไตเติ้ล\n2. ฝึกศิลปะการแปลสโลแกน (Transcreation)\n3. เรียนรู้การเลือก Tone ให้เข้ากับหนัง\n\n(ระบบจะล็อคปุ่มเพื่อให้อ่านเนื้อหาให้ครบนะคะ)" },
+        
+        // --- SECTION 1: Subtitle Deep Dive ---
+        { type: "read", title: "Scene 1: Subtitle Anatomy 🧬", html: `
+            <div class="info-card">
+                <span class="info-title">1. Space Constraint (พื้นที่)</span>
+                ซับไตเติ้ลที่ดีต้องอ่านง่าย สบายตา:<br>
+                🚫 ห้ามเกิน 2 บรรทัด<br>
+                🚫 ห้ามเกิน 37-40 ตัวอักษร/บรรทัด<br>
+                <div class="example-box">
+                    <span class="bad-ex">ฉันคิดว่ามันไม่ใช่ความคิดที่ดีเลยที่คุณจะเดินเข้าไปในป่านั้นคนเดียวตอนดึกๆ</span>
+                    <span class="good-ex">อย่าเข้าป่าคนเดียวตอนดึกเลย มันอันตราย</span> (กระชับ!)
+                </div>
+            </div>` 
+        },
+        { type: "read", title: "Scene 1.2: Timing is Key ⏱️", html: `
+            <div class="info-card" style="border-left-color:var(--blue);">
+                <div class="trivia-tag">Did You Know?</div>
+                <span class="info-title">CPS (Characters Per Second)</span>
+                คนเราอ่านหนังสือช้ากว่าฟังเสียงพูดค่ะ<br>
+                มาตรฐาน Netflix/Disney คือ <b>12-15 ตัวอักษรต่อวินาที</b><br>
+                ถ้ายาวกว่านี้... คนดูอ่านไม่ทัน!
+            </div>
+            <p style="text-align:center;">มาลองตัดคำฟุ่มเฟือยกันเถอะค่ะ!</p>` 
+        },
+        
+        // Game 1: The Cutter
+        { type: "trim-game", title: "Mini-Game: The Cutter ✂️", 
+          desc: "ประโยคนี้ยาวเกินไปและอ่านไม่ทัน! จิ้มเลือกคำแปลที่ 'สั้นและได้ใจความ' ที่สุด:",
+          orig: "Well, honestly speaking, I really do not know what I am supposed to do right now.",
+          options: ["เอ่อ พูดตรงๆ นะ ฉันไม่รู้จริงๆ ว่าฉันควรจะทำอะไรในตอนนี้", "ฉันไม่รู้จะทำไงดี", "บอกตามตรง ตอนนี้ฉันทำอะไรไม่ถูกเลย"], 
+          ans: "ฉันไม่รู้จะทำไงดี",
+          reason: "ถูกต้องค่ะ! ตัดน้ำออกเหลือแต่เนื้อ ความหมายครบถ้วนและอ่านทันแน่นอน" 
+        },
+
+        // --- SECTION 2: Transcreation ---
+        { type: "read", title: "Scene 2: The Art of Slogan 🎨", html: `
+            <div class="info-card" style="border-left-color:var(--accent);">
+                <span class="info-title">Transcreation (Translate + Create)</span>
+                การแปลโฆษณา ไม่ใช่แค่แปลความหมาย แต่ต้องแปล <b>\"ความรู้สึก\"</b><br>
+                ✅ <b>Catchy:</b> ติดหู<br>
+                ✅ <b>Persuasive:</b> โน้มน้าวใจ<br>
+                <br>
+                Ex: <i>"Melts in your mouth, not in your hands"</i><br>
+                😐 ละลายในปาก ไม่ใช่ในมือ (ธรรมดา)<br>
+                😍 <b>ละลายในปาก ไม่ละลายในมือ</b> (คล้องจอง จำง่าย)
+            </div>` 
+        },
+
+        // Game 2: Slogan Fix
+        { type: "match-game", title: "Mini-Game: Slogan Remix 🧩", 
+          q: "L'Oréal: Because you're worth it.",
+          options: ["เพราะคุณคู่ควร", "เพราะคุณมีราคา", "เพราะคุณจ่ายไหว"],
+          ans: "เพราะคุณคู่ควร",
+          feedback: "ถูกต้องค่ะ! 'คู่ควร' ฟังดูเลอค่าและเข้าถึงอารมณ์ผู้หญิง" },
+
+        // --- SECTION 3: Context & Tone ---
+        { type: "read", title: "Scene 3: Genre & Tone 🎭", html: `
+            <div class="info-card" style="border-left-color:var(--success);">
+                <span class="info-title">บริบทเปลี่ยน คำเปลี่ยน</span>
+                ประโยคเดิม แต่ถ้าหนังคนละม้วน ความหมายก็ต่างกันค่ะ<br><br>
+                🗣️ <b>"Get out!"</b><br>
+                👻 หนังผี: <i>"ออกไป๊!"</i> (ไล่ผี/คน)<br>
+                🤣 หนังตลกวัยรุ่น: <i>"บ้าจริง / ไม่เชื่อหรอก!"</i> (Surprised)<br>
+                👮 หนังตำรวจ: <i>"ลงรถมา!"</i> (สั่งผู้ร้าย)
+            </div>` 
+        },
+
+        // Game 3: Mood Master
+        { type: "match-game", title: "Mini-Game: Mood Master 🎭", 
+          q: "สถานการณ์: พระเอกเจอนางเอกครั้งแรกในหนังรักโรแมนติก<br>ประโยค: 'Watch where you're going!'",
+          options: ["เดินดูตาม้าตาเรือหน่อยสิ!", "ระวังหน่อยครับคุณ", "ตาบอดรึไง!"],
+          ans: "ระวังหน่อยครับคุณ",
+          feedback: "ใช่ค่ะ! หนังรักควรใช้โทนสุภาพและนุ่มนวลเพื่อปูบทโรแมนติก" },
+
+        // --- SECTION 4: Censor ---
+        { type: "read", title: "Scene 4: The Censor Bureau 🚫", html: `
+            <p>การแปลคำหยาบ (Swear Words) ต้องดูบริบทสังคมและเรตหนัง</p>
+            <div class="example-box">
+                <b>Damn it!</b><br>
+                📺 ทีวีสาธารณะ: <i>"โธ่เอ๊ย! / ให้ตายสิ!"</i><br>
+                🔞 Netflix 18+: <i>"เวรเอ๊ย! / แม่งเอ๊ย!"</i>
+            </div>
+            <p>⚠️ <b>Rule:</b> แปลให้ได้อารมณ์ตัวละคร แต่ไม่ต้องหยาบคายเกินความจำเป็น</p>` 
+        },
+
+        // --- RECAP ---
+        { type: "read", title: "Director's Cut (Summary) 🎬", html: `
+            <div class="info-card" style="border-left-color:#fff;">
+                <span class="info-title" style="color:#fff;">สรุปบทเรียนก่อนถ่ายทำจริง</span>
+                <ul style="padding-left:20px;">
+                    <li>✂️ <b>Subtitle:</b> สั้น กระชับ อ่านทัน (12-15 CPS)</li>
+                    <li>✨ <b>Slogan:</b> แปลสร้างสรรค์ เน้นอารมณ์ (Transcreation)</li>
+                    <li>🎭 <b>Tone:</b> เลือกคำให้เข้ากับประเภทหนัง (Genre)</li>
+                </ul>
+            </div>
+            <p style="text-align:center; font-weight:bold; color:var(--primary);">พร้อมแล้ว... Action! ไปทำแบบทดสอบกันเลยค่ะ</p>` 
+        },
+
+        // --- FINAL QUIZ ---
+        { type: "quiz-intro", title: "Final Production", html: `<div style="text-align:center; font-size:4em; margin-bottom:20px;">🏆</div><p><b>แบบทดสอบวัดผล (10 ข้อ)</b></p><p>ระบบสุ่มจากคลัง 25 ข้อ</p><p style="color:var(--error); font-weight:bold; background:rgba(255,0,0,0.1); padding:10px; border-radius:5px;">เงื่อนไข: ต้องได้ 10/10 เต็มเท่านั้นค่ะ!</p>` }
+    ];
+
+    let currentSessionSlides = []; 
+
+    // --- UTILS ---
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function generateQuizSet() {
+        const shuffledPool = shuffleArray([...questionPool]);
+        const selectedQuestions = shuffledPool.slice(0, 10);
+        return selectedQuestions.map(qObj => {
+            let opts = shuffleArray([...qObj.choices]);
+            const correctIdx = opts.indexOf(qObj.ans);
+            return { type: "quiz", q: qObj.q, options: opts, ans: correctIdx };
+        });
+    }
+
+    function updateProgress() {
+        const total = currentSessionSlides.length;
+        const current = slideIndex + 1;
+        const percent = (current / total) * 100;
+        document.getElementById('progressBar').style.width = percent + '%';
+    }
+
+    // --- LOGIC ---
+    function checkLogin() {
+        const id = document.getElementById('inputID').value.trim();
+        if (students[id]) {
+            currentUser = students[id];
+            currentUser.id = id;
+            document.getElementById('userDisplay').innerText = `Director: ${currentUser.name}`;
+            document.getElementById('screen-login').classList.remove('active');
+            document.getElementById('footerBar').style.display = 'flex';
+            
+            const randomQuizzes = generateQuizSet();
+            currentSessionSlides = [...baseSlides, ...randomQuizzes];
+            slideIndex = 0;
+            renderSlide();
+        } else { alert("⚠️ ไม่พบรหัสในระบบค่ะ"); }
+    }
+
+    function renderSlide() {
+        document.getElementById('screen-lesson').innerHTML = ""; 
+        document.getElementById('screen-lesson').style.display = "none";
+        document.getElementById('screen-result').innerHTML = ""; 
+        document.getElementById('screen-result').style.display = "none";
+
+        if (slideIndex >= currentSessionSlides.length) { showResult(); return; }
+
+        const s = currentSessionSlides[slideIndex];
+        const screen = document.getElementById('screen-lesson');
+        screen.style.display = "flex"; 
+        screen.classList.add('active');
+        
+        updateProgress();
+
+        if (s.type === 'quiz-intro') quizScore = 0;
+
+        let html = `<h2>${s.title || "Scene " + (slideIndex - baseSlides.length + 1)}</h2>`;
+
+        if (s.type === 'intro') {
+            html += `<p style="white-space: pre-line; text-align:center;">${s.text}</p>`;
+            lockNavigation(5);
+        }
+        else if (s.type === 'read' || s.type === 'quiz-intro') {
+            html += `${s.html}`;
+            if(s.type === 'read') lockNavigation(5);
+        }
+        else if (s.type === 'trim-game') {
+            html += `<div class="cut-container">
+                        <div class="cut-text">"${s.orig}"</div>
+                        <div style="font-size:0.8em; color:#666;">(Length: ${s.orig.length} chars - Too Long!)</div>
+                     </div>
+                     <p style="text-align:center;">${s.desc}</p>
+                     <div class="option-grid" id="trim-opts"></div>`;
+        }
+        else if (s.type === 'match-game') {
+            html += `<div class="info-card" style="text-align:center; font-size:1.2em; padding:30px;">${s.q}</div>
+                     <p style="text-align:center;">เลือกคำแปลที่เหมาะสมที่สุด:</p>
+                     <div class="option-grid" id="match-opts"></div>`;
+        }
+        else if (s.type === 'quiz') {
+            html += `<div class="info-card" style="font-weight:bold; font-size:1.2em; border-left-color:#fff;">${s.q}</div><div class="option-grid" id="quiz-options"></div>`;
+        }
+
+        screen.innerHTML = `<div style="width:100%;">${html}</div>`;
+
+        // Reset Button State for Games
+        const nextBtn = document.getElementById('nextBtn');
+        if(s.type === 'trim-game' || s.type === 'match-game') {
+            nextBtn.disabled = true;
+            nextBtn.classList.add('btn-disabled');
+            nextBtn.innerText = "PLAY TO UNLOCK";
+        } else if (['intro', 'read'].includes(s.type)) {
+            // Handled by lockNavigation
+        } else {
+            // Quiz slides (allow clicking options to advance, but button can be auxiliary)
+            nextBtn.style.display = 'none'; 
+        }
+        
+        if(s.type !== 'quiz') nextBtn.style.display = 'block';
+
+        if (s.type === 'trim-game') initTrimGame(s);
+        if (s.type === 'match-game') initMatchGame(s);
+        if (s.type === 'quiz') initQuiz(s);
+    }
+
+    // --- NAVIGATION LOCK ---
+    function lockNavigation(seconds) {
+        const btn = document.getElementById('nextBtn');
+        if(!btn) return;
+        
+        btn.disabled = true;
+        btn.classList.add('btn-disabled');
+        let timeLeft = seconds;
+        
+        btn.innerText = `READING... (${timeLeft})`;
+        
+        if(navTimer) clearInterval(navTimer);
+        
+        navTimer = setInterval(() => {
+            timeLeft--;
+            btn.innerText = `READING... (${timeLeft})`;
+            if(timeLeft <= 0) {
+                clearInterval(navTimer);
+                btn.disabled = false;
+                btn.classList.remove('btn-disabled');
+                btn.innerText = "ACTION ❯";
+            }
+        }, 1000);
+    }
+
+    function unlockGameBtn() {
+        const btn = document.getElementById('nextBtn');
+        if(btn) {
+            btn.disabled = false;
+            btn.classList.remove('btn-disabled');
+            btn.innerText = "ACTION ❯";
+        }
+    }
+
+    function nextSlide() { 
+        if(navTimer) clearInterval(navTimer); 
+        slideIndex++; 
+        renderSlide(); 
+    }
+    
+    function prevSlide() { 
+        if(navTimer) clearInterval(navTimer);
+        if(slideIndex > 0) {
+            slideIndex--; 
+            renderSlide(); 
+        }
+    }
+
+    // --- GAME LOGIC ---
+    function initTrimGame(s) {
+        const area = document.getElementById('trim-opts');
+        s.options.forEach(txt => {
+            let btn = document.createElement('div');
+            btn.className = 'quiz-option'; btn.innerText = txt;
+            btn.onclick = () => {
+                if (txt === s.ans) { 
+                    btn.classList.add('correct'); 
+                    alert(`🎬 CUT! เยี่ยมมากค่ะ\n${s.reason}`); 
+                    unlockGameBtn();
+                }
+                else { btn.classList.add('wrong'); alert("❌ ยังไม่ดีค่ะ ยาวไปหรือความหมายเปลี่ยน ลองใหม่นะคะ"); }
+            };
+            area.appendChild(btn);
+        });
+    }
+
+    function initMatchGame(s) {
+        const area = document.getElementById('match-opts');
+        let choices = shuffleArray([...s.options]);
+        choices.forEach(txt => {
+            let btn = document.createElement('div');
+            btn.className = 'quiz-option'; btn.innerText = txt;
+            btn.onclick = () => {
+                if (txt === s.ans) { 
+                    btn.classList.add('correct'); 
+                    alert(s.feedback || `✨ Perfect! สละสลวยมากค่ะ`); 
+                    unlockGameBtn();
+                }
+                else { 
+                    btn.classList.add('wrong'); 
+                    alert("🤔 ยังไม่ค่อยโดนใจ ลองใหม่นะคะ"); 
+                }
+            };
+            area.appendChild(btn);
+        });
+    }
+
+    function initQuiz(s) {
+        const area = document.getElementById('quiz-options');
+        const nextBtn = document.getElementById('nextBtn');
+        nextBtn.style.display = 'none'; // Hide next button in quiz, auto advance
+
+        s.options.forEach((opt, idx) => {
+            let btn = document.createElement('div');
+            btn.className = 'quiz-option'; btn.innerText = opt;
+            btn.onclick = () => {
+                const all = document.querySelectorAll('.quiz-option'); all.forEach(b => b.classList.add('locked'));
+                if (idx === s.ans) { btn.classList.add('correct'); quizScore++; setTimeout(() => nextSlide(), 500); }
+                else { btn.classList.add('wrong'); all[s.ans].classList.add('correct'); setTimeout(() => nextSlide(), 1500); }
+            };
+            area.appendChild(btn);
+        });
+    }
+
+    // --- RESULT ---
+    function showResult() {
+        document.getElementById('screen-lesson').style.display = "none";
+        document.getElementById('footerBar').style.display = "none"; // Hide footer
+        const resScreen = document.getElementById('screen-result');
+        resScreen.style.display = "flex";
+        const passed = (quizScore === 10);
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('th-TH');
+        const refCode = "U6-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+        if (passed) {
+            resScreen.innerHTML = `
+                <h2 style="color:var(--success); border-bottom:none;">It's a Wrap! 🎬</h2>
+                <div class="cert-card">
+                    <div class="watermark-container" id="wm-area"></div>
+                    <div class="cert-content">
+                        <div class="cert-header">Translation Studio</div>
+                        <p style="color:#888; letter-spacing:2px; font-size:0.8em; margin-bottom:15px;">CERTIFICATE OF COMPLETION</p>
+                        <div style="font-size:1.6em; font-weight:bold; color:var(--primary); margin:15px 0; font-family:'Prompt';">${currentUser.name}</div>
+                        <p style="color:#ddd;">${currentUser.class} | No. ${currentUser.no}</p>
+                        <div style="font-size:3em; font-weight:bold; color:var(--success); margin:15px 0;">10/10</div>
+                        <div class="stamp">MASTERPIECE</div>
+                        <div style="margin-top:20px; font-size:0.8em; color:#666;">Date: ${dateStr} | Ref: ${refCode}</div>
+                    </div>
+                </div>
+                <p style="margin-top:20px; font-size:0.9em; color:#888;">📸 Capture this screen for submission</p>
+                <button class="btn btn-sm" onclick="location.reload()" style="margin-top:15px; width:100%;">LOGOUT</button>
+            `;
+            const wm = document.getElementById('wm-area');
+            const txt = `${currentUser.id} ${currentUser.name}`;
+            for(let i=0; i<15; i++) { let s = document.createElement('div'); s.className = 'wm-item'; s.innerText = txt; wm.appendChild(s); }
+        } else {
+            resScreen.innerHTML = `
+                <div style="text-align:center; padding:40px; background:#2c0303; border:2px dashed var(--error); border-radius:15px; width:100%;">
+                    <div style="font-size:4em;">🎬</div>
+                    <h2 style="color:var(--error); border-bottom:none;">Cut! Take 2</h2>
+                    <p style="font-size:1.4em; font-weight:bold; color:#fff;">Score: ${quizScore}/10</p>
+                    <p style="color:#ccc;">We need perfection (10/10).<br>Let's try again!</p>
+                    <button class="btn btn-primary" onclick="restartQuiz()">RE-TAKE SCENE ↺</button>
+                </div>
+            `;
+        }
+    }
+
+    function restartQuiz() {
+        quizScore = 0;
+        const newQuizzes = generateQuizSet();
+        currentSessionSlides = [...baseSlides, ...newQuizzes];
+        slideIndex = baseSlides.length - 1; 
+        document.getElementById('footerBar').style.display = "flex";
+        renderSlide();
+    }
+
+    function adminReset() {
+        const targetSecret = "UGFsb2xpaXo="; 
+        let input = prompt("🔐 PRODUCER ACCESS:");
+        try {
+            if (input && btoa(input) === targetSecret) { localStorage.clear(); alert("✅ STUDIO RESET"); location.reload(); }
+            else if (input) { alert("❌ WRONG PASSCODE"); }
+        } catch(e) { alert("❌ ERROR"); }
+    }
+</script>
+
+</body>
+</html>
